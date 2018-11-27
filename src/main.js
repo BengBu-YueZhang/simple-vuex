@@ -5,9 +5,10 @@ class Store {
   constructor () {
     this._isCommit = false
     this.state = Object.create(null)
+    this.getter = Object.create(null)
     this._actions = Object.create(null)
     this._mutations = Object.create(null)
-    this._vm = new Vue()
+    this._vm = Object.create(null)
 
     const store = this
 
@@ -23,7 +24,7 @@ class Store {
   }
 
   get state () {
-
+    return this._vm.data.$$state
   }
 
   set state () {
@@ -58,6 +59,34 @@ class Store {
   }
 
   resetStoreVM () {
+    const getterKeys = Object.keys(this.getter)
+    const computed = {}
+    for (let i = 0; i < getterKeys.length; i++) {
+      let key = getterKeys[i]
+      computed[key] = () => this.getter[key](this)
+      // 利用vue的computed特性实现getter
+      Object.defineProperty(this.getters, key, {
+        get: () => this._vm[key],
+        enumerable: true
+      })
+    }
+    
+    this._vm = new Vue({
+      data: {
+        $$state: this.state
+      },
+      computed
+    })
+
+    this._vm.$watch(
+      function () { return this._data.$$state },
+      () => {
+        if (!this._isCommit) {
+          throw new Error('do not mutate vuex store state outside mutation handlers')
+        }
+      },
+      { deep: true, sync: true }
+    )
   }
 }
 
