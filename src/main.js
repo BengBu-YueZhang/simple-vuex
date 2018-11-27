@@ -1,6 +1,6 @@
 let Vue
 
-class Store {
+export class Store {
 
   constructor () {
     this._isCommit = false
@@ -90,4 +90,6 @@ class Store {
   }
 }
 
-export default Store
+export function install (_Vue) {
+  Vue = _Vue
+}
