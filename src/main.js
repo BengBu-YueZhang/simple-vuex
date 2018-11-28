@@ -1,13 +1,17 @@
 let Vue
 
-export class Store {
+class Store {
 
-  constructor () {
+  constructor ({
+    state = {},
+    actions = {},
+    mutations = {},
+    getter = {}
+  }) {
     this._isCommit = false
-    this.state = Object.create(null)
-    this.getter = Object.create(null)
-    this._actions = Object.create(null)
-    this._mutations = Object.create(null)
+    this.getter = { ...getter, ...Object.create(null) }
+    this._actions = { ...actions, ...Object.create(null) }
+    this._mutations = {  ...mutations, ...Object.create(null) }
     this._vm = Object.create(null)
 
     const store = this
@@ -27,7 +31,7 @@ export class Store {
     return this._vm.data.$$state
   }
 
-  set state () {
+  set state (v) {
     throw new Error('Need to use commit.')
   }
 
@@ -58,7 +62,7 @@ export class Store {
     this._isCommit = isCommit
   }
 
-  resetStoreVM () {
+  resetStoreVM (state) {
     const getterKeys = Object.keys(this.getter)
     const computed = {}
     for (let i = 0; i < getterKeys.length; i++) {
@@ -73,7 +77,7 @@ export class Store {
     
     this._vm = new Vue({
       data: {
-        $$state: this.state
+        $$state: state
       },
       computed
     })
@@ -90,6 +94,11 @@ export class Store {
   }
 }
 
-export function install (_Vue) {
+function install (_Vue) {
   Vue = _Vue
+}
+
+export default {
+  install,
+  Store
 }
