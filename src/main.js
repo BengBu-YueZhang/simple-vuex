@@ -51,7 +51,7 @@ class Store {
       throw new Error(`mutations [${type}] not found`)
     } else {
       this._withCommit(() => {
-        entry(payload)
+        entry(this.state, payload)
       })
     }
   }
@@ -61,7 +61,7 @@ class Store {
     if (!entry) {
       throw new Error(`actions [${type}] not found`)
     } else {
-      return entry(payload)
+      return entry(this, payload)
     }
   }
 
@@ -100,7 +100,7 @@ class Store {
     this._vm.$watch(
       function () { return  this._data.$$state },
       () => {
-        if (  this._isCommit) {
+        if (!this._isCommit) {
           throw new Error('do not mutate vuex store state outside mutation handlers')
         }
       },
