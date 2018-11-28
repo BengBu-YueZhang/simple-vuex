@@ -1,3 +1,5 @@
+import applyMixin from './mixin'
+
 let Vue
 
 class Store {
@@ -8,6 +10,11 @@ class Store {
     mutations = {},
     getter = {}
   }) {
+    
+    if (!Vue && typeof window !== 'undefined' && window.Vue) {
+      install(window.Vue)
+    }
+
     this._isCommit = false
     this.getter = { ...getter, ...Object.create(null) }
     this._actions = { ...actions, ...Object.create(null) }
@@ -25,10 +32,12 @@ class Store {
     this.commit = function (type, payload) {
       return commit.call(store, type, payload)
     }
+
+    this.resetStoreVM(state)
   }
 
   get state () {
-    return this._vm.data.$$state
+    return this._vm._data.$$state
   }
 
   set state (v) {
@@ -68,8 +77,7 @@ class Store {
     for (let i = 0; i < getterKeys.length; i++) {
       let key = getterKeys[i]
       computed[key] = () => this.getter[key](this)
-      // 利用vue的computed特性实现getter
-      Object.defineProperty(this.getters, key, {
+      Object.defineProperty(this.getter, key, {
         get: () => this._vm[key],
         enumerable: true
       })
@@ -96,6 +104,7 @@ class Store {
 
 function install (_Vue) {
   Vue = _Vue
+  applyMixin(Vue)
 }
 
 export default {
