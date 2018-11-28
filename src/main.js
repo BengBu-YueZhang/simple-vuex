@@ -1,4 +1,5 @@
 import applyMixin from './mixin'
+import { clone } from './util'
 
 let Vue
 
@@ -76,9 +77,15 @@ class Store {
     const computed = {}
     for (let i = 0; i < getterKeys.length; i++) {
       let key = getterKeys[i]
-      computed[key] = () => this.getter[key](this)
+
+      let getter = clone(this.getter[key])
+
+      computed[key] = () => getter(this.state)
+
       Object.defineProperty(this.getter, key, {
-        get: () => this._vm[key],
+        get: () => {
+          return this._vm[key]
+        },
         enumerable: true
       })
     }
@@ -91,9 +98,9 @@ class Store {
     })
 
     this._vm.$watch(
-      function () { return this._data.$$state },
+      function () { return  this._data.$$state },
       () => {
-        if (!this._isCommit) {
+        if (  this._isCommit) {
           throw new Error('do not mutate vuex store state outside mutation handlers')
         }
       },
